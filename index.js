@@ -13,37 +13,31 @@ app.get("/", function (req, res) {
 });
 
 // your first API endpoint...
-app.get("/api/hello", function (req, res) {
-  res.json({ greeting: "hello API" });
+
+const isInvalidDate = (date) => date.toUTCString() == "Invalid Date";
+app.get("/api/:date", function (req, res) {
+  let date = new Date(req.params.date);
+
+  if (isInvalidDate(date)) {
+    date = new Date(+req.params.date);
+  }
+
+  if (isInvalidDate(date)) {
+    res.send({ error: "Invalid Date" });
+    return;
+  }
+
+  res.json({
+    unix: date.getTime(),
+    utc: date.toUTCString(),
+  });
 });
 
-const formatResponse = (dateObject) => {
-  return {
-    unix: dateObject.getTime(),
-    utc: dateObject.toUTCString(),
-  };
-};
-
-app.get(/^\/api\/.*$/, (req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname;
-  const parts = pathname.split("/");
-  const date = parts[2];
-
-  if (date === "") {
-    return res.send(formatResponse(new Date()));
-  }
-
-  if (Date.parse(date)) {
-    return res.send(formatResponse(new Date(date)));
-  }
-
-  if (parseInt(date)) {
-    const dateObject = new Date(parseInt(date));
-    return res.send(formatResponse(dateObject));
-  }
-
-  res.send({ error: "Invalid Date" });
+app.get("/api", (req, res) => {
+  res.json({
+    unix: new Date().getTime(),
+    utc: new Date().toUTCString(),
+  });
 });
 
 // Listen on port set in environment variable or default to 3000
